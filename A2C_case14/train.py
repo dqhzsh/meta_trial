@@ -58,8 +58,9 @@ def main():
     tp = TrainingParam()
 
     tp.SAVING_NUM = 1000
-    tp.gama = 0.99
-    #tp.gama = 0.90
+    tp.gamma = 0.90
+    tp.lmbda = 0.10
+    tp.entropy_coeff = 0.01
     tp.max_step = 2000
     # tp.loss_weight = []
     # actor_weight = 0.5
@@ -80,7 +81,7 @@ def main():
     #                     "topo_vect", "rho", "line_status", "hour_of_day", "minute_of_hour"]
 
     # case14所用网络
-    sizes = [800, 800, 494, 494]  # sizes of each hidden layers
+    sizes = [800, 800, 800, 494, 494, 494]  # sizes of each hidden layers
     PolicySize = [800, 576, 460]
     CriticSize = [800, 512, 64]
     # tp.kwargs_archi = {'sharesizes': sizes,

@@ -9,18 +9,29 @@ class NormalizedL2RPNReward(L2RPNReward):
 
     def initialize(self, env):
         super().initialize(env)
-        self.reward_min = dt_float(0.0)
+        self.reward_min = dt_float(-1.0)
         #self.reward_max = dt_float(env.backend.n_line)
         self.reward_max = dt_float(1.0)
 
     def __call__(self, action, env, has_error, is_done, is_illegal, is_ambiguous):
-        #if not is_done and not has_error and not is_illegal and not is_ambiguous:
-        if not is_done and not has_error:
+        # if not is_done and not has_error:
+        #     line_cap = self.__get_lines_capacity_usage(env)
+        #     res = line_cap.sum()/env.backend.n_line
+        # else:
+        #     res = self.reward_min
+        #
+        # return res
+        if has_error or is_illegal or is_ambiguous:
+            # previous action was bad
+            res = self.reward_min
+        elif is_done:
+            # really strong reward if an episode is over without game over
+            res = self.reward_max
+        else:
             line_cap = self.__get_lines_capacity_usage(env)
             res = line_cap.sum()/env.backend.n_line
-        else:
-            res = self.reward_min
-
+            if not np.isfinite(res):
+                res = self.reward_min
         return res
 
 

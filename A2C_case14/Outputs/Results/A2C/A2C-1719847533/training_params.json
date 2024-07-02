@@ -1,0 +1,64 @@
+{
+    "SAVING_NUM": 1000,
+    "entropy_coeff": 0.01,
+    "gamma": 0.9,
+    "kwargs_archi": {
+        "Actoractivs": [
+            "relu",
+            "relu",
+            "relu"
+        ],
+        "Actorsizes": [
+            800,
+            576,
+            460
+        ],
+        "Criticactivs": [
+            "relu",
+            "relu",
+            "relu"
+        ],
+        "Criticsizes": [
+            800,
+            512,
+            64
+        ],
+        "shareactivs": [
+            "relu",
+            "relu",
+            "relu",
+            "relu",
+            "relu",
+            "relu"
+        ],
+        "sharesizes": [
+            800,
+            800,
+            800,
+            494,
+            494,
+            494
+        ]
+    },
+    "list_attr_obs": [
+        "prod_p",
+        "prod_v",
+        "load_p",
+        "load_q",
+        "actual_dispatch",
+        "target_dispatch",
+        "topo_vect",
+        "time_before_cooldown_line",
+        "time_before_cooldown_sub",
+        "rho",
+        "timestep_overflow",
+        "line_status"
+    ],
+    "lmbda": 0.1,
+    "loss_weight": [
+        1,
+        1
+    ],
+    "max_step": 2000,
+    "model_name": "A2C-1719847533"
+}
