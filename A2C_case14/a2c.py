@@ -224,20 +224,21 @@ class Agent(AgentWithConverter):
                             if len(self.epoch_rewards) >= 30:
                                 mean_reward_30 = np.mean(self.epoch_rewards[-30:])
                                 mean_alive_30 = np.mean(self.epoch_alive[-30:])
-                                mean_loss_actor_30 = np.mean(self.loss_actor_list[-30:])
-                                mean_loss_critic_30 = np.mean(self.loss_critic_list[-30:])
+                                if len(self.epoch_rewards) >= 50:
+                                    mean_loss_actor = np.mean(self.loss_actor_list)
+                                    mean_loss_critic = np.mean(self.loss_critic_list[-50:])
 
                             else:
                                 mean_reward_30 = mean_reward
                                 mean_alive_30 = mean_alive
-                                mean_loss_actor_30 = mean_loss_actor
-                                mean_loss_critic_30 = mean_loss_critic
+                                mean_loss_actor = mean_loss_actor
+                                mean_loss_critic = mean_loss_critic
 
                             if len(self.epoch_rewards) >= 1:
                                 tf.summary.scalar("mean_reward_30", mean_reward_30, step)
                                 tf.summary.scalar("mean_alive_30", mean_alive_30, step)
-                                tf.summary.scalar("mean_loss_actor_30", mean_loss_actor_30, step)
-                                tf.summary.scalar("mean_loss_critic_30", mean_loss_critic_30, step)
+                                tf.summary.scalar("mean_loss_actor", mean_loss_actor, step)
+                                tf.summary.scalar("mean_loss_critic", mean_loss_critic, step)
 
                     pbar.update(1)
 
