@@ -9,7 +9,7 @@ class NormalizedL2RPNReward(L2RPNReward):
 
     def initialize(self, env):
         super().initialize(env)
-        self.reward_min = dt_float(0.0)
+        self.reward_min = dt_float(-1.0)
         #self.reward_max = dt_float(env.backend.n_line)
         self.reward_max = dt_float(1.0)
 
@@ -22,7 +22,6 @@ class NormalizedL2RPNReward(L2RPNReward):
             res = self.reward_min
 
         return res
-
 
     @staticmethod
     def __get_lines_capacity_usage(env):

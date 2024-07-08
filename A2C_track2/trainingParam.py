@@ -3,12 +3,13 @@ import json
 
 
 class TrainingParam(object):
-    _all_attr = ["SAVING_NUM", "gama", "lmbda", "max_step", "loss_weight", "kwargs_archi", "list_attr_obs", "model_name"]
+    _all_attr = ["SAVING_NUM", "gama", "lmbda", "entropy_coeff", "max_step", "loss_weight", "kwargs_archi", "list_attr_obs", "model_name"]
 
     def __init__(self,
                  SAVING_NUM=100,  # 每SAVING_NUM保存一次
                  gama=0.9,  # 折扣因子
                  lmbda=0.2,  # GAE的λ, 一般->0,远小于gama; λ=0, 为A=r+γV(s')-V(s), λ=1, 为A=sum(r)-V(s)
+                 entropy_coeff=0.1,
                  max_step=8064, #设置智能体跑的最大步数
                  loss_weight=[1, 1],
                  kwargs_archi={},
@@ -18,6 +19,7 @@ class TrainingParam(object):
         self.SAVING_NUM = SAVING_NUM
         self.gama = gama
         self.lmbda = lmbda
+        self.entropy_coeff = entropy_coeff
         self.max_step = max_step
         self.loss_weight = loss_weight
         self.kwargs_archi = kwargs_archi

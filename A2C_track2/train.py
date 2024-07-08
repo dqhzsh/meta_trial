@@ -60,6 +60,8 @@ def main():
     tp.SAVING_NUM = 1000
     #tp.gama = 0.99
     tp.gama = 0.90
+    tp.lmbda = 0.10
+    tp.entropy_coeff = 0.01
     tp.max_step = 2000
     tp.loss_weight = []
     actor_weight = 0.5
@@ -128,7 +130,7 @@ def main():
     save_path = "Outputs/Results/A2C/{}".format(tp.model_name)
     logs_dir = "Outputs/logs/A2C/{}".format(tp.model_name)
     load_path = None
-    num_train_steps = 40000
+    num_train_steps = 100000
 
     train(env,
         name=DEFAULT_NAME,

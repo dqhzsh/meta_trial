@@ -52,7 +52,7 @@ class A2C(object):
             loss_entropy = -K.sum(y_pred * K.log(y_pred + 1e-10))
             loss_entropy = tf.reduce_mean(loss_entropy)
             # 将熵损失加到策略损失中
-            loss_actor += loss_entropy
+            loss_actor += loss_entropy * self.training_param.entropy_coeff
             # 返回最终的损失
             return loss_actor
         return loss
@@ -109,18 +109,33 @@ class A2C(object):
 
         print(self.model.summary())
 
+    @staticmethod
+    @tf.function
+    def silent_predict(model, data):
+        return model(data, training=False)
+
     def predict_movement(self, data):
         data = np.expand_dims(data, axis=0)  # 扩展数据维度
-        a_prob = self.model_policy_head.predict(data)  # 预测动作概率
+        #print("Before policy head prediction")
+        #a_prob = self.model_policy_head.predict(data)  # 预测动作概率
+        a_prob = self.silent_predict(self.model_policy_head, data)  # 使用 tf.function 包装的预测函数
+        #print("After policy head prediction")
+        a_prob = a_prob.numpy()  # 将 EagerTensor 转换为 NumPy 数组
         opt_policy = np.random.choice(range(a_prob.shape[1]), p=a_prob.ravel())  # 根据概率选择动作
         pa = np.squeeze(a_prob)  # 将预测的概率压缩成一维
         return int(opt_policy), pa  # 返回选择的动作和概率
 
     def get_advantages(self, states, dones, rewards, last_state): # 对每一回合计算所有步的优势函数 (adv), dones已经转换成done为0，非done为1
-        values = self.model_critic_head.predict(states) # 使用 Critic 网络预测所有状态的值
+        #values = self.model_critic_head.predict(states) # 使用 Critic 网络预测所有状态的值
+        values = self.silent_predict(self.model_critic_head, states)  # 使用 tf.function 包装的预测函数
+        values = values.numpy()
         Advantage = [] # 初始化存储优势函数的列表
         gae = 0 # 初始化广义优势估计 (Generalized Advantage Estimation, GAE)
-        v = self.model_critic_head.predict(last_state) # 使用 Critic 网络预测最后一个状态的值
+        #print("Before critic head prediction")
+        #v = self.model_critic_head.predict(last_state) # 使用 Critic 网络预测最后一个状态的值
+        v = self.silent_predict(self.model_critic_head, last_state)  # 使用 tf.function 包装的预测函数
+        #print("After critic head prediction")
+        v = v.numpy()
         values = np.append(values, v, axis=0) # 将最后一个状态的值追加到 values 中
 
         # 逆序遍历奖励，计算每一步的优势函数
@@ -153,7 +168,9 @@ class A2C(object):
         self.advs = adv_batch
 
         # 求 V_target
-        V_last = self.model_critic_head.predict(last_state)  # 预测最后一个状态的价值
+        #V_last = self.model_critic_head.predict(last_state)  # 预测最后一个状态的价值
+        V_last = self.silent_predict(self.model_critic_head, last_state)
+        V_last = V_last.numpy()
         r_batch[-1] += self.training_param.gama * done[-1] * V_last  # 更新最后一个奖励值，加上折扣后的最后一个状态的价值
         V_target = self.calculate_returns(r_batch, done)  # 计算所有步的目标价值（回报）
         act_batch = tf.one_hot(a_batch, self.action_size)  # 将动作批次转换为 one-hot 编码
@@ -188,12 +205,15 @@ class A2C(object):
 
         #return tf.reduce_mean(loss_actor), tf.reduce_mean(loss_v)
 
-        # actor网络训练
+        #print("Before actor network training")
         actor_loss = self.model_policy_head.fit(x=s_batch, y=np.append(act_batch, adv_batch, axis=1), batch_size=32,
-                                                epochs=3, shuffle=True)
+                                                epochs=3, shuffle=True, verbose=0)
+        #print("After actor network training")
 
-        # critic网络训练
-        critic_loss = self.model_critic_head.fit(x=s_batch, y=V_target, batch_size=32, epochs=10, shuffle=True)
+        #print("Before critic network training")
+        critic_loss = self.model_critic_head.fit(x=s_batch, y=V_target, batch_size=32, epochs=10, shuffle=True,
+                                                 verbose=0)
+        #("After critic network training")
 
         return tf.reduce_mean(actor_loss.history["loss"]), tf.reduce_mean(critic_loss.history["loss"])
 
