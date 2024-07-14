@@ -1,0 +1,62 @@
+{
+    "SAVING_NUM": 1000,
+    "entropy_coeff": 0.01,
+    "gama": 0.9,
+    "kwargs_archi": {
+        "Actoractivs": [
+            "relu",
+            "relu",
+            "relu",
+            "relu",
+            "relu",
+            "relu"
+        ],
+        "Actorsizes": [
+            800,
+            800,
+            800,
+            494,
+            494,
+            494
+        ],
+        "Criticactivs": [
+            "relu",
+            "relu"
+        ],
+        "Criticsizes": [
+            800,
+            800
+        ],
+        "shareactivs": [
+            "relu",
+            "relu",
+            "relu",
+            "relu",
+            "relu",
+            "relu"
+        ],
+        "sharesizes": [
+            800,
+            800,
+            800,
+            494,
+            494,
+            494
+        ]
+    },
+    "list_attr_obs": [
+        "prod_p",
+        "load_p",
+        "topo_vect",
+        "rho",
+        "line_status",
+        "time_next_maintenance"
+    ],
+    "lmbda": 0.85,
+    "loss_weight": [
+        0.5,
+        1.0
+    ],
+    "max_step": 2000,
+    "model_name": "meta_A2C-1720941597"
+}

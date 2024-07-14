@@ -1,0 +1,149 @@
+import time
+from grid2op.MakeEnv import make
+from grid2op.Action import *
+from grid2op.Parameters import Parameters
+from lightsim2grid.lightSimBackend import LightSimBackend
+
+from grid2op.Reward import *
+from trainingParam import TrainingParam
+from a2c import Agent
+from reward import NormalizedL2RPNReward
+
+DEFAULT_NAME = "A2C"
+def train(env,
+        name=DEFAULT_NAME,
+        train_step=1,
+        save_path=None,
+        load_path=None,
+        logs_dir=None,
+        training_param=None,
+        verbose=True
+        ):
+
+    if training_param is None:
+        training_param = TrainingParam()
+
+    my_agent = Agent(env,
+                    env.observation_space,
+                    env.action_space,
+                    lr_actor=1e-5,
+                    lr_critic=1e-5,
+                    training_param=training_param
+                    )
+
+    my_agent.train(env,
+                train_step,
+                save_path,
+                logs_dir,
+                training_param,
+                verbose
+                )
+
+
+def main():
+    backend = LightSimBackend()
+    game_param = Parameters()
+    game_param.NB_TIMESTEP_COOLDOWN_SUB = 2
+    game_param.NB_TIMESTEP_COOLDOWN_LINE = 2
+
+    # env_name = "l2rpn_case14_sandbox"
+    env_name = "l2rpn_neurips_2020_track2_small"
+    env = make(#env_name,
+               #reward_class=L2RPNReward,
+               dataset = r"/nfs01/projects/50501254/s120222227104/data_grid2op/l2rpn_neurips_2020_track2_small",
+               param=game_param,
+               reward_class=NormalizedL2RPNReward,
+               action_class=TopologyChangeAndDispatchAction,
+               backend=backend
+            )
+    print("最初状态空间大小为{}".format(env.observation_space.size()))
+    print("最初动作空间大小为{}".format(env.action_space.size()))
+
+
+    tp = TrainingParam()
+
+    tp.SAVING_NUM = 1000
+    #tp.gama = 0.99
+    tp.gama = 0.90
+    tp.lmbda = 0.85
+    tp.entropy_coeff = 0.01
+    tp.max_step = 2000
+    tp.loss_weight = []
+    actor_weight = 0.5
+    critic_weight = 1.0
+    tp.loss_weight.append(actor_weight)
+    tp.loss_weight.append(critic_weight)
+    tp.model_name ="meta_A2C-{}".format(int(time.time()))
+
+    # tp.list_attr_obs = ["prod_p", "prod_v", "load_p", "load_q",
+    #                 "actual_dispatch", "target_dispatch", "topo_vect", "time_before_cooldown_line",
+    #                 "time_before_cooldown_sub", "rho", "timestep_overflow", "line_status"]
+
+    tp.list_attr_obs = ["prod_p", "load_p",
+                        "topo_vect", "rho", "line_status",
+                        "time_next_maintenance"]
+
+    # tp.list_attr_obs = ["prod_p", "prod_q", "prod_v", "load_p", "load_q", "load_v", "actual_dispatch", "target_dispatch",
+    #                     "time_before_cooldown_line", "time_before_cooldown_sub", "timestep_overflow", "gen_margin_up", "gen_margin_down",
+    #                     "topo_vect", "rho", "line_status", "hour_of_day", "minute_of_hour"]
+
+    # sizes = [800, 800, 494, 494]  # sizes of each hidden layers
+    # PolicySize = [800, 576, 460]
+    # CriticSize = [800, 512, 64]
+
+    # sizes = [7000, 7000, 4000, 4000]
+    # PolicySize = [4096, 2996, 1998]
+    # CriticSize = [4096, 2048, 453, 64]
+
+    # sizes = [8000, 8000, 8000, 8000, 4000, 2048, 2048]
+    # PolicySize = [4096, 3665, 2996, 2563, 1998]
+    # CriticSize = [4096, 2048, 1016, 453, 64]
+
+    # sizes = [3000, 3000, 900, 900]  # sizes of each hidden layers
+    # PolicySize = [3000, 2500, 2000]
+    # CriticSize = [3000, 1000, 64]
+
+    sizes = [800, 800, 800, 494, 494, 494]  # sizes of each hidden layers
+    PolicySize = [800, 800, 800, 494, 494, 494]
+    CriticSize = [800, 800]
+
+    # sizes = [512,256,128]
+    # PolicySize = [ 128, 64]
+    # CriticSize = [ 128, 64]
+
+    # sizes = [3072, 3072, 1024, 1024]  # sizes of each hidden layers
+    # PolicySize = [3072, 2048, 1500]
+    # CriticSize = [3072, 1000, 200]
+
+    # tp.kwargs_archi = {'sharesizes': sizes,
+    #                 'shareactivs': ["relu" for _ in sizes],  # all relu activation function
+    #                 'Actorsizes':PolicySize,
+    #                 'Actoractivs':["relu" for _ in PolicySize],
+    #                 'Criticsizes': CriticSize,
+    #                 'Criticactivs': ["relu" for _ in PolicySize]
+    #                 }
+    tp.kwargs_archi = {'sharesizes': sizes,
+                       'shareactivs': ["relu" for _ in sizes],  # all relu activation function
+                       'Actorsizes': PolicySize,
+                       'Actoractivs': ["relu" for _ in PolicySize],
+                       'Criticsizes': CriticSize,
+                       'Criticactivs': ["relu" for _ in CriticSize]
+                       }
+
+    save_path = "Outputs/Results/A2C/{}".format(tp.model_name)
+    logs_dir = "Outputs/logs/A2C/{}".format(tp.model_name)
+    load_path = None
+    num_train_steps = 100000
+
+    train(env,
+        name=DEFAULT_NAME,
+        train_step=num_train_steps,
+        save_path=save_path,
+        load_path=load_path,
+        logs_dir=logs_dir,
+        training_param=tp,
+        verbose=False
+        )
+
+if __name__ == "__main__":
+    main()
