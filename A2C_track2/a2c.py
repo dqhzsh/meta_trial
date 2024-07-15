@@ -49,7 +49,7 @@ class Agent(AgentWithConverter):
         elem += len(act_dict["topology"]["disconnect_bus"])
         elem += len(act_dict["redispatch"]["generators"])
 
-        if elem <= MAX_ELEM:
+        if elem == MAX_ELEM:
             return True
         return False
 
@@ -167,15 +167,18 @@ class Agent(AgentWithConverter):
         done = False
         self.init_training()
         new_obs = env.reset()
+        print(env.chronics_handler.real_data.get_id())
         state = self.convert_obs(new_obs)
 
         with tqdm(total=train_step, disable=False, miniters=1, mininterval=3) as pbar:
             train_summary_writer = tf.summary.create_file_writer(logdir)
             while(step < train_step):
                 while(alive_steps <= self._training_param.max_step):
-                    if done:
+                    if done or alive_steps == self._training_param.max_step:
                         new_obs = env.reset()
+                        print(env.chronics_handler.real_data.get_id())
                         state = self.convert_obs(new_obs)
+                        alive_steps = 0
 
                     a, a_prob = self.A2C.predict_movement(state)
                     act = self.convert_act(a)
@@ -195,7 +198,7 @@ class Agent(AgentWithConverter):
 
                     state = new_state
 
-                    if done or alive_steps == self._training_param.max_step:
+                    if done:
                         # Normalize rewards before training
                         # normalized_rewards = self.normalize_rewards(rewards)
                         # 回合更新
@@ -218,13 +221,40 @@ class Agent(AgentWithConverter):
                         print("Survived [{}] steps".format(alive_steps))
                         print("Total reward [{}]".format(total_reward))
 
-                        alive_steps = 0
+                        # alive_steps = 0
                         total_reward = 0
 
                         break
 
                     else:
                         alive_steps += 1
+                        if alive_steps == self._training_param.max_step:
+                            # Normalize rewards before training
+                            # normalized_rewards = self.normalize_rewards(rewards)
+                            # 回合更新
+                            loss_actor, loss_critic = self.A2C.train(np.array(states), np.array(actions),
+                                                                     np.array(rewards),
+                                                                     np.array(new_states), np.array(dones),
+                                                                     np.array(actions_probs))
+                            self.epoch_rewards.append(total_reward)
+                            self.epoch_alive.append(alive_steps)
+                            self.loss_actor_list.append(loss_actor)
+                            self.loss_critic_list.append(loss_critic)
+
+                            states.clear()  # buffer
+                            actions.clear()
+                            new_states.clear()
+                            dones.clear()
+                            rewards.clear()
+                            actions_probs.clear()
+
+                            print("Survived [{}] steps".format(alive_steps))
+                            print("Total reward [{}]".format(total_reward))
+
+                            # alive_steps = 0
+                            total_reward = 0
+
+                            break
 
                     if step % 100 == 0 and len(self.epoch_rewards) >= 1:
                         with train_summary_writer.as_default():

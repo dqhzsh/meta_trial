@@ -140,8 +140,8 @@ class A2C(object):
 
         # 逆序遍历奖励，计算每一步的优势函数
         for i in reversed(range(len(rewards))):
-            delta = rewards[i] + self.training_param.gama * values[i + 1] * dones[i] - values[i] # 计算 temporal-difference (TD) 残差 delta,如果done, values[i + 1] * dones[i] 会为 0，从而忽略掉未来的状态值
-            gae = delta + self.training_param.gama * self.training_param.lmbda * dones[i] * gae # 计算 GAE
+            delta = rewards[i] + self.training_param.gamma * values[i + 1] * dones[i] - values[i] # 计算 temporal-difference (TD) 残差 delta,如果done, values[i + 1] * dones[i] 会为 0，从而忽略掉未来的状态值
+            gae = delta + self.training_param.gamma * self.training_param.lmbda * dones[i] * gae # 计算 GAE
             Advantage.insert(0, gae) # 将 GAE 插入 Advantage 列表的开头
 
         adv = np.array(Advantage) # 将优势函数列表转换为 numpy 数组
@@ -154,7 +154,7 @@ class A2C(object):
         result[-1] = rewards[-1]  # 最后一个时间步的返回值等于最后一个奖励值
         # 逆序计算每个时间步的返回值
         for t in range(len(rewards) - 2, -1, -1): #从 len(rewards) - 2 开始逆序迭代到 -1 （包括 -1），步长为 -1
-            result[t] = rewards[t] + self.training_param.gama * dones[t] * result[t + 1]
+            result[t] = rewards[t] + self.training_param.gamma * dones[t] * result[t + 1]
             # 当前时间步的返回值等于当前奖励加上折扣率乘以是否结束标志乘以下一时间步的返回值
         return result  # 返回计算好的所有时间步的返回值数组
 
@@ -171,7 +171,7 @@ class A2C(object):
         #V_last = self.model_critic_head.predict(last_state)  # 预测最后一个状态的价值
         V_last = self.silent_predict(self.model_critic_head, last_state)
         V_last = V_last.numpy()
-        r_batch[-1] += self.training_param.gama * done[-1] * V_last  # 更新最后一个奖励值，加上折扣后的最后一个状态的价值
+        r_batch[-1] += self.training_param.gamma * done[-1] * V_last  # 更新最后一个奖励值，加上折扣后的最后一个状态的价值
         V_target = self.calculate_returns(r_batch, done)  # 计算所有步的目标价值（回报）
         act_batch = tf.one_hot(a_batch, self.action_size)  # 将动作批次转换为 one-hot 编码
         #a_prob = self.model_policy_head.predict(s_batch)

@@ -58,8 +58,8 @@ def main():
     tp = TrainingParam()
 
     tp.SAVING_NUM = 1000
-    #tp.gama = 0.99
-    tp.gama = 0.90
+    #tp.gamma = 0.99
+    tp.gamma = 0.90
     tp.lmbda = 0.10
     tp.entropy_coeff = 0.01
     tp.max_step = 2000
@@ -115,9 +115,13 @@ def main():
     # PolicySize = [4096, 2996, 1998]
     # CriticSize = [4096, 2048, 453, 64]
 
-    sizes = [3000, 3000, 900, 900]  # sizes of each hidden layers
-    PolicySize = [3000, 2500, 2000]
-    CriticSize = [3000, 1000, 64]
+    # sizes = [3000, 3000, 900, 900]  # sizes of each hidden layers
+    # PolicySize = [3000, 2500, 2000]
+    # CriticSize = [3000, 1000, 64]
+
+    sizes = [800, 800, 800, 494, 494, 494]  # sizes of each hidden layers
+    PolicySize = [800, 800, 800, 494, 494, 494]
+    CriticSize = [800, 800]
 
     tp.kwargs_archi = {'sharesizes': sizes,
                        'shareactivs': ["relu" for _ in sizes],  # all relu activation function
