@@ -101,7 +101,7 @@ class Agent(AgentWithConverter):
         return super().convert_act(action)
 
     def my_act(self, observation, reward, done=False):
-        predict_movement_int, *_ = self.A2C.predict_movement(observation.reshape(1, -1))
+        predict_movement_int, *_ = self.A2C.predict_movement(observation)
         return int(predict_movement_int)
 
     def load(self, path):

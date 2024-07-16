@@ -238,7 +238,8 @@ class A2C(object):
 
     def load_network(self, path, name=None, ext="h5"):
         path_model, path_policy_model, path_critic_model = self._get_path_model(path, name)
-        self.model = load_model('{}.{}'.format(path_model, ext))
-        self.model_policy_head = load_model('{}.{}'.format(path_policy_model, ext))
+        self.model = load_model('{}.{}'.format(path_model, ext), custom_objects={'loss': self.custom_loss()})
+        self.model_policy_head = load_model('{}.{}'.format(path_policy_model, ext),
+                                            custom_objects={'loss': self.custom_loss()})
         self.model_critic_head = load_model('{}.{}'.format(path_critic_model, ext))
         print("Successfully loaded network from: {}".format(path))
